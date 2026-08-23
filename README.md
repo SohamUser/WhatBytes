@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# Task Manager
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An Expo SDK 54 / React Native task manager using Firebase Authentication and Cloud Firestore as its only backend. The app supports email/password accounts, persistent sessions, per-user real-time tasks, CRUD, completion tracking, search, priority/status filters, due-date sections, and swipe-to-delete actions.
 
-## Get started
+## Firebase setup
 
-1. Install dependencies
+1. Create or select a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Add a **Web app** to obtain the Firebase JS configuration values.
+3. In **Authentication → Sign-in method**, enable **Email/Password**.
+4. Create a **Cloud Firestore** database.
+5. Copy `.env.example` to `.env.local` and replace each placeholder:
 
-   ```bash
-   npm install
+   ```env
+   EXPO_PUBLIC_FIREBASE_API_KEY=...
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+   EXPO_PUBLIC_FIREBASE_APP_ID=...
    ```
 
-2. Start the app
+6. Publish the rules in `firestore.rules` through the Firebase Console or Firebase CLI. The rules require authentication and scope every task to the UID stored in its `userId` field.
 
-   ```bash
-   npx expo start
-   ```
+Firebase Web API keys identify the Firebase project; access is enforced by Authentication and Firestore Security Rules. `.env.local` is ignored so each developer can use their own project configuration.
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run and verify
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use `a` for Android, `i` for iOS on macOS, or `w` for web. The Firebase JS SDK works in Expo Go for the Authentication and Firestore features used here.
 
-## Learn more
+Quality checks:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx tsc --noEmit
+npm run lint
+npx expo export --platform web
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Project structure
 
-## Join the community
+- `app/` — Expo Router route groups and stack presentation
+- `screens/` — login, registration, task list, and reusable create/edit form screens
+- `components/ui/` — NativeWind-styled primitives and feedback states
+- `context/` — lightweight authentication, task, and toast state
+- `services/` — Firebase initialization plus auth/task operations
+- `types/` — strongly typed users, tasks, inputs, priorities, and filters
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
