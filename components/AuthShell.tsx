@@ -1,6 +1,13 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,38 +20,80 @@ interface AuthShellProps extends PropsWithChildren {
 }
 
 export function AuthShell({ eyebrow, title, subtitle, children }: AuthShellProps) {
+  const scrollRef = useRef<ScrollView | null>(null);
+  const focusedHandleRef = useRef<number | null>(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  function revealFocusedField(nativeHandle: number | null, extraOffset = 32) {
+    if (nativeHandle === null) return;
+
+    setTimeout(() => {
+      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(
+        nativeHandle,
+        extraOffset,
+        true,
+      );
+    }, 80);
+  }
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisible(true);
+      revealFocusedField(focusedHandleRef.current, 48);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 bg-paper-100">
       <StatusBar style="dark" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <ScrollView
-          contentContainerClassName="flex-grow justify-center px-4 py-8"
+          ref={scrollRef}
+          automaticallyAdjustKeyboardInsets
+          contentContainerClassName={`flex-grow px-4 ${keyboardVisible ? "justify-start py-4" : "justify-center py-8"}`}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
+          onFocus={(event) => {
+            focusedHandleRef.current = event.nativeEvent.target;
+            revealFocusedField(event.nativeEvent.target);
+          }}
         >
           <View className="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-cork-300/35" />
           <View className="absolute -left-32 top-10 h-52 w-52 rounded-full bg-[#FFEB7A]/35" />
           <View className="mx-auto w-full max-w-md">
-            <View className="mb-8 items-center">
-              <View className="relative mb-6">
-                <View className="absolute -left-5 top-2 h-2 w-2 rounded-full bg-accent-500" />
-                <View className="absolute -right-5 top-0 h-2 w-2 rounded-full bg-cork-500" />
-                <View className="absolute -right-7 bottom-2 h-1.5 w-1.5 rounded-full bg-ink-700" />
-                <View className="h-20 w-20 rotate-[-3deg] items-center justify-center rounded-sm bg-[#FFEB7A] shadow-lg">
-                  <Ionicons color="#57534E" name="checkmark" size={46} />
+            <View className={keyboardVisible ? "mb-3 items-center" : "mb-8 items-center"}>
+              {!keyboardVisible ? (
+                <View className="relative mb-6">
+                  <View className="absolute -left-5 top-2 h-2 w-2 rounded-full bg-accent-500" />
+                  <View className="absolute -right-5 top-0 h-2 w-2 rounded-full bg-cork-500" />
+                  <View className="absolute -right-7 bottom-2 h-1.5 w-1.5 rounded-full bg-ink-700" />
+                  <View className="h-20 w-20 rotate-[-3deg] items-center justify-center rounded-sm bg-[#FFEB7A] shadow-lg">
+                    <Ionicons color="#57534E" name="checkmark" size={46} />
+                  </View>
                 </View>
-              </View>
+              ) : null}
               <Text className="text-sm font-bold uppercase tracking-[2px] text-accent-600">
                 {eyebrow}
               </Text>
-              <Text className="mt-3 text-center text-4xl text-ink-900" style={{ fontFamily: "Kalam_700Bold" }}>
+              <Text className={`${keyboardVisible ? "mt-1 text-2xl" : "mt-3 text-4xl"} text-center text-ink-900`} style={{ fontFamily: "Kalam_700Bold" }}>
                 {title}
               </Text>
-              <Text className="mt-2 max-w-sm text-center text-base leading-6 text-ink-500" style={{ fontFamily: "Kalam_400Regular" }}>
-                {subtitle}
-              </Text>
+              {!keyboardVisible ? (
+                <Text className="mt-2 max-w-sm text-center text-base leading-6 text-ink-500" style={{ fontFamily: "Kalam_400Regular" }}>
+                  {subtitle}
+                </Text>
+              ) : null}
             </View>
 
             <StickyNote color="#FFF4B8" rotation={0.45}>

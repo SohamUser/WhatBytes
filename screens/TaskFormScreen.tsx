@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
+  findNodeHandle,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -35,6 +36,8 @@ export default function TaskFormScreen() {
   const { tasks, isLoading, createTask, updateTask } = useTasks();
   const task = taskId ? tasks.find((item) => item.id === taskId) : undefined;
   const initializedTaskId = useRef<string | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
+  const titleInputRef = useRef<TextInput | null>(null);
   const descriptionInputRef = useRef<TextInput | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -43,6 +46,19 @@ export default function TaskFormScreen() {
   const [titleError, setTitleError] = useState<string | undefined>();
   const [submitError, setSubmitError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function revealInput(input: TextInput | null, extraOffset = 24) {
+    const nativeHandle = findNodeHandle(input);
+    if (nativeHandle === null) return;
+
+    setTimeout(() => {
+      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(
+        nativeHandle,
+        extraOffset,
+        true,
+      );
+    }, 120);
+  }
 
   useEffect(() => {
     if (!task || initializedTaskId.current === task.id) return;
@@ -85,7 +101,7 @@ export default function TaskFormScreen() {
     <SafeAreaView className="flex-1 bg-paper-100" edges={["top", "bottom", "left", "right"]}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <View className="border-b border-cork-500/25 bg-paper-50">
@@ -110,7 +126,10 @@ export default function TaskFormScreen() {
         </View>
 
         <ScrollView
+          ref={scrollRef}
+          automaticallyAdjustKeyboardInsets
           contentContainerClassName="mx-auto w-full max-w-2xl gap-5 px-5 pb-8 pt-5"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
         >
           {missingTask ? (
@@ -133,6 +152,7 @@ export default function TaskFormScreen() {
                     Title
                   </Text>
                   <TextInput
+                    ref={titleInputRef}
                     accessibilityLabel="Task title"
                     autoFocus={!taskId}
                     className="min-h-14 py-1 text-[29px] leading-10 text-stone-900"
@@ -146,6 +166,7 @@ export default function TaskFormScreen() {
                       setTitle(value);
                       if (value.trim()) setTitleError(undefined);
                     }}
+                    onFocus={() => revealInput(titleInputRef.current)}
                     onSubmitEditing={() => descriptionInputRef.current?.focus()}
                   />
                   <View className={`border-b border-dashed ${titleError ? "border-danger-600" : "border-stone-600/35"}`} />
@@ -166,6 +187,7 @@ export default function TaskFormScreen() {
                     style={{ fontFamily: "Kalam_400Regular", textAlignVertical: "top" }}
                     value={description}
                     onChangeText={setDescription}
+                    onFocus={() => revealInput(descriptionInputRef.current, 100)}
                   />
                 </View>
               </StickyNote>

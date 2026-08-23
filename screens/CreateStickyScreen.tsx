@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
+  findNodeHandle,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -29,6 +31,8 @@ export default function CreateStickyScreen() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const noteRef = useRef<View | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
+  const titleRef = useRef<TextInput | null>(null);
   const descriptionRef = useRef<TextInput | null>(null);
   const instanceId = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const revisionRef = useRef(0);
@@ -55,6 +59,19 @@ export default function CreateStickyScreen() {
   function updateDescription(value: string) {
     revisionRef.current += 1;
     setDescription(value);
+  }
+
+  function revealInput(input: TextInput | null, extraOffset = 24) {
+    const nativeHandle = findNodeHandle(input);
+    if (nativeHandle === null) return;
+
+    setTimeout(() => {
+      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(
+        nativeHandle,
+        extraOffset,
+        true,
+      );
+    }, 120);
   }
 
   function submitDraft() {
@@ -116,7 +133,7 @@ export default function CreateStickyScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper-100" edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
@@ -138,9 +155,17 @@ export default function CreateStickyScreen() {
           </Pressable>
         </View>
 
-        <View className="flex-1 px-5 pb-3">
-          {failed ? (
-            <View className="mb-3 gap-2">
+        <ScrollView
+          ref={scrollRef}
+          automaticallyAdjustKeyboardInsets
+          className="flex-1"
+          contentContainerClassName="flex-grow px-5 pb-4"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="flex-1">
+            {failed ? (
+              <View className="mb-3 gap-2">
               <InlineBanner message={failed.error} />
               <View className="flex-row gap-2">
                 <Button
@@ -163,15 +188,15 @@ export default function CreateStickyScreen() {
                   }}
                 />
               </View>
-            </View>
-          ) : null}
+              </View>
+            ) : null}
 
-          <StickyNote
-            className="flex-1"
-            color="#FFEB7A"
-            rotation={-0.7}
-            style={{ minHeight: 310, maxHeight: 590 }}
-          >
+            <StickyNote
+              className="flex-1"
+              color="#FFEB7A"
+              rotation={-0.7}
+              style={{ minHeight: 410, maxHeight: 590 }}
+            >
             <View ref={noteRef} collapsable={false} className="flex-1">
               <GestureDetector gesture={tearGesture}>
                 <View
@@ -195,6 +220,7 @@ export default function CreateStickyScreen() {
                   Title
                 </Text>
                 <TextInput
+                  ref={titleRef}
                   accessibilityLabel="Task title"
                   autoFocus
                   className="min-h-14 py-1 text-[29px] leading-10 text-stone-900"
@@ -205,6 +231,7 @@ export default function CreateStickyScreen() {
                   style={{ fontFamily: "Kalam_700Bold" }}
                   value={title}
                   onChangeText={updateTitle}
+                  onFocus={() => revealInput(titleRef.current)}
                   onSubmitEditing={() => descriptionRef.current?.focus()}
                 />
                 <View className="border-b border-dashed border-stone-600/35" />
@@ -224,26 +251,28 @@ export default function CreateStickyScreen() {
                   style={{ fontFamily: "Kalam_400Regular", textAlignVertical: "top" }}
                   value={description}
                   onChangeText={updateDescription}
+                  onFocus={() => revealInput(descriptionRef.current, 100)}
                 />
               </View>
             </View>
-          </StickyNote>
+            </StickyNote>
 
-          {validationMessage ? (
-            <Text accessibilityRole="alert" className="mt-2 text-center text-sm font-semibold text-danger-700">
-              {validationMessage}
-            </Text>
-          ) : null}
-        </View>
+            {validationMessage ? (
+              <Text accessibilityRole="alert" className="mt-2 text-center text-sm font-semibold text-danger-700">
+                {validationMessage}
+              </Text>
+            ) : null}
 
-        <View className="px-5 pb-4 pt-2">
-          <Button
-            fullWidth
-            label="Add task"
-            leftIcon={<Ionicons color="white" name="paper-plane-outline" size={20} />}
-            onPress={submitDraft}
-          />
-        </View>
+            <View className="pt-3">
+              <Button
+                fullWidth
+                label="Add task"
+                leftIcon={<Ionicons color="white" name="paper-plane-outline" size={20} />}
+                onPress={submitDraft}
+              />
+            </View>
+          </View>
+        </ScrollView>
         <StickyActionSheet
           actions={accountActions}
           message={user?.email ?? "Signed in"}
