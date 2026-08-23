@@ -1,6 +1,6 @@
-# GigFlow
+# Task-It-Up
 
-GigFlow is a sticky-note task manager built with Expo SDK 54 and React Native. Tasks are written on a paper-style composer, torn from the pad, and animated into a two-column task board. Firebase Authentication and Cloud Firestore provide persistent accounts and real-time, per-user task synchronization.
+Task-It-Up is a task manager built with Expo SDK 54 and React Native. Tasks are written on a paper-style composer, torn from the pad, and animated into a two-column task board. Firebase Authentication and Cloud Firestore provide persistent accounts and real-time, per-user task synchronization.
 
 ## Features
 
