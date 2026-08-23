@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 
 import { AuthFieldErrors } from "@/types";
+import { mapFirebaseAuthErrorCode } from "@/utils/authErrors";
 
 import { auth } from "./firebase";
 
@@ -34,34 +35,7 @@ export function mapAuthError(error: unknown): AuthFieldErrors {
     message: error.message,
   });
 
-  switch (error.code) {
-    case "auth/invalid-email":
-      return { email: "Enter a valid email address." };
-    case "auth/email-already-in-use":
-      return { email: "An account already exists for this email." };
-    case "auth/weak-password":
-      return { password: "Choose a stronger password (at least 6 characters)." };
-    case "auth/wrong-password":
-    case "auth/invalid-credential":
-    case "auth/user-not-found":
-      return { password: "Email or password is incorrect." };
-    case "auth/network-request-failed":
-      return { form: "Network error. Check your connection and try again." };
-    case "auth/operation-not-allowed":
-    case "auth/configuration-not-found":
-      return {
-        form: "Email/password authentication is not enabled for this Firebase project.",
-      };
-    case "auth/invalid-api-key":
-    case "auth/app-not-authorized":
-      return {
-        form: "Firebase Authentication is not configured correctly for this app.",
-      };
-    case "auth/too-many-requests":
-      return { form: "Too many attempts. Please wait a moment and try again." };
-    default:
-      return { form: "We couldn't complete that request. Please try again." };
-  }
+  return mapFirebaseAuthErrorCode(error.code);
 }
 
 export async function login(email: string, password: string) {

@@ -9,11 +9,14 @@ Task-It-Up is a task manager built with Expo SDK 54 and React Native. Tasks are 
 - Button and upward tear-handle submission gestures
 - Jagged paper tear, curved fly-to-tab animation, Task-tab pulse, and optimistic badge updates
 - FIFO submission queue with duplicate protection and failed-write recovery
-- Two-column sticky-note board with stable per-task colors and rotations
+- Due-date-sorted sticky-note list with stable per-task colors and rotations
+- Priority and completion-status filters
+- Visible per-note deletion with sticky-paper confirmation
 - Animated completion checkmark and layout reflow
-- Collapsible completed-task stack with task restoration
+- Completed-task filtering with task restoration
 - Sticky-note editor for title, description, due date, and priority
 - Real-time Firestore synchronization across devices
+- Clear validation and invalid-credential feedback on authentication screens
 - System-aware reduced-motion behavior
 - Persistent sound preference and a bundled, attribution-free paper-tear effect
 - Keyboard-aware bottom tabs, warm paper UI, and accessible controls
@@ -71,9 +74,9 @@ Each accepted draft receives its Firestore document ID before animation. The roo
 
 ### Managing tasks
 
-The Tasks tab displays active notes using deterministic paper colors and rotations, so their appearance remains stable across reloads. Cards show only the title, creation time, and completion control. Tap a task to edit it, or long-press it for task actions.
+The Tasks tab displays notes in a one-column list sorted by due date from earliest to latest. Status controls switch between all, incomplete, and completed notes; priority controls narrow the list to high, medium, or low priority. Notes use deterministic paper colors and rotations, so their appearance remains stable across reloads. Cards show the title, due date, creation time, and completion control. Tap a task to edit it, or long-press it for task actions.
 
-Completing a note draws its checkmark, dismisses it from the active board, and persists `completed: true`. Completed notes remain in Firestore inside a collapsed stack and can be restored later.
+Completing a note draws its checkmark, dismisses it from the incomplete list, and persists `completed: true`. Completed notes remain in Firestore, appear under the Done or All status filter, and can be restored later.
 
 ### Motion and sound
 

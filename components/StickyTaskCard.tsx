@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, {
   Easing,
   FadeInDown,
@@ -16,6 +16,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { StickyNote } from "@/components/StickyNote";
 import { Task } from "@/types";
+import { formatDueDate, isTaskOverdue } from "@/utils/date";
 import { formatCreatedAt, getStickyAppearance, getStickyCardTitle } from "@/utils/stickyNotes";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -27,6 +28,7 @@ interface StickyTaskCardProps {
   completed?: boolean;
   onArrivalRendered?: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   onOpenMenu: () => void;
   onComplete: () => Promise<void>;
 }
@@ -38,6 +40,7 @@ export function StickyTaskCard({
   completed = false,
   onArrivalRendered,
   onEdit,
+  onDelete,
   onOpenMenu,
   onComplete,
 }: StickyTaskCardProps) {
@@ -46,6 +49,7 @@ export function StickyTaskCard({
   const reduceMotion = useReducedMotion();
   const [animating, setAnimating] = useState(false);
   const appearance = getStickyAppearance(task.id);
+  const overdue = isTaskOverdue(task.dueDate, task.completed);
 
   useEffect(() => {
     if (arriving) onArrivalRendered?.();
@@ -113,26 +117,42 @@ export function StickyTaskCard({
       <StickyNote
         color={completed ? "#E7E1D6" : appearance.color}
         rotation={completed ? appearance.rotation * 0.35 : appearance.rotation}
-        style={{ height: completed ? 128 : 164, opacity: busy ? 0.62 : 1 }}
+        style={{ height: 156, opacity: busy ? 0.62 : 1 }}
       >
         <Pressable
           accessibilityHint="Opens the task editor. Long press for more actions."
           accessibilityLabel={`${task.title}${completed ? ", completed" : ""}`}
-          className="flex-1 px-4 pb-2 pt-4"
+          className="flex-1 px-4 pb-3 pr-14 pt-4"
           disabled={busy || animating}
           onLongPress={onOpenMenu}
           onPress={onEdit}
         >
           <Text
             className={`text-[19px] leading-7 text-ink-900 ${completed ? "line-through opacity-60" : ""}`}
-            numberOfLines={completed ? 2 : 3}
+            numberOfLines={3}
             style={{ fontFamily: "Kalam_700Bold" }}
           >
             {getStickyCardTitle(task)}
           </Text>
-          <Text className="mt-auto text-[11px] font-semibold uppercase tracking-wide text-ink-700/70">
-            {formatCreatedAt(task.createdAt)}
-          </Text>
+          <View className="mt-auto">
+            <Text className={`text-xs font-bold ${overdue ? "text-danger-700" : "text-ink-700"}`}>
+              Due {formatDueDate(task.dueDate)}
+            </Text>
+            <Text className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-700/65">
+              Added {formatCreatedAt(task.createdAt)}
+            </Text>
+          </View>
+        </Pressable>
+
+        <Pressable
+          accessibilityLabel={`Delete ${task.title}`}
+          accessibilityRole="button"
+          className="absolute right-2 top-2 h-12 w-12 items-center justify-center rounded-full bg-white/40 active:bg-danger-50"
+          disabled={busy || animating}
+          hitSlop={4}
+          onPress={onDelete}
+        >
+          <Ionicons color="#B91C1C" name="trash-outline" size={20} />
         </Pressable>
 
         <Pressable

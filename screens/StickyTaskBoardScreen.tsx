@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
@@ -12,21 +11,37 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineBanner } from "@/components/ui/InlineBanner";
 import { LoadingState } from "@/components/ui/LoadingState";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useAnimationCoordinator } from "@/context/AnimationCoordinator";
 import { useAuth } from "@/context/AuthContext";
 import { useTasks } from "@/context/TaskContext";
 import { useToast } from "@/context/ToastContext";
 import { routes } from "@/navigation/routes";
 import { logout } from "@/services/authService";
-import type { Task } from "@/types";
-import { getStickyAppearance } from "@/utils/stickyNotes";
+import type { PriorityFilter, Task, TaskStatusFilter } from "@/types";
+import { cn } from "@/utils/cn";
+import { filterAndSortTasks } from "@/utils/taskFilters";
+
+const statusOptions: { label: string; value: TaskStatusFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "To do", value: "incomplete" },
+  { label: "Done", value: "completed" },
+];
+
+const priorityOptions: { label: string; value: PriorityFilter }[] = [
+  { label: "All priorities", value: "all" },
+  { label: "High", value: "high" },
+  { label: "Medium", value: "medium" },
+  { label: "Low", value: "low" },
+];
 
 export default function StickyTaskBoardScreen() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const { tasks, isLoading, error, busyTaskIds, retry, toggleTask, removeTask } = useTasks();
   const { recentArrivalIds, consumeRecentArrival } = useAnimationCoordinator();
-  const [completedOpen, setCompletedOpen] = useState(false);
+  const [status, setStatus] = useState<TaskStatusFilter>("incomplete");
+  const [priority, setPriority] = useState<PriorityFilter>("all");
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
   const [remoteArrivalIds, setRemoteArrivalIds] = useState<Set<string>>(() => new Set());
   const [activeSheet, setActiveSheet] = useState<
@@ -51,12 +66,17 @@ export default function StickyTaskBoardScreen() {
     });
   }, [tasks]);
 
-  const activeTasks = useMemo(
-    () => tasks.filter((task) => !task.completed && !hiddenIds.has(task.id)),
-    [hiddenIds, tasks],
+  const visibleTasks = useMemo(
+    () => filterAndSortTasks(
+      tasks.filter((task) => task.completed || !hiddenIds.has(task.id)),
+      { priority, status },
+    ),
+    [hiddenIds, priority, status, tasks],
   );
-  const completedTasks = useMemo(() => tasks.filter((task) => task.completed), [tasks]);
-
+  const activeCount = useMemo(
+    () => tasks.reduce((count, task) => count + (task.completed ? 0 : 1), 0),
+    [tasks],
+  );
   function openEditor(taskId: string) {
     router.push({ pathname: routes.taskForm, params: { taskId } });
   }
@@ -161,7 +181,7 @@ export default function StickyTaskBoardScreen() {
         <View>
           <Text className="text-xs font-bold uppercase tracking-[2px] text-ink-700">Your board</Text>
           <Text className="text-3xl text-ink-900" style={{ fontFamily: "Kalam_700Bold" }}>
-            {activeTasks.length} {activeTasks.length === 1 ? "note" : "notes"} to do
+            {activeCount} {activeCount === 1 ? "note" : "notes"} to do
           </Text>
         </View>
         <Pressable
@@ -182,71 +202,91 @@ export default function StickyTaskBoardScreen() {
       ) : null}
 
       <FlatList
-        data={activeTasks}
+        data={visibleTasks}
         keyExtractor={(task) => task.id}
-        numColumns={2}
-        columnWrapperClassName="gap-3 px-4"
-        contentContainerClassName="gap-3 pb-28 pt-2"
+        contentContainerClassName="pb-28"
         keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <View className="px-5 pt-12">
-            <EmptyState
-              actionLabel="Create a note"
-              icon="create-outline"
-              message="Tear off a fresh sticky note and it will land here."
-              title="Your board is clear"
-              onAction={() => router.push(routes.create)}
+        ListHeaderComponent={
+          <View className="gap-3 px-4 pb-4 pt-2">
+            <SegmentedControl
+              accessibilityLabel="Filter tasks by status"
+              options={statusOptions}
+              value={status}
+              onChange={setStatus}
             />
+            <View>
+              <Text className="mb-2 text-xs font-bold uppercase tracking-[1.5px] text-ink-700">
+                Priority
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {priorityOptions.map((option) => {
+                  const selected = priority === option.value;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      accessibilityLabel={`${option.label} priority filter`}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: selected }}
+                      className={cn(
+                        "min-h-11 items-center justify-center rounded-full border px-4",
+                        selected
+                          ? "border-accent-600 bg-accent-500"
+                          : "border-cork-700/25 bg-paper-50/75 active:bg-paper-100",
+                      )}
+                      onPress={() => setPriority(option.value)}
+                    >
+                      <Text className={cn("text-sm font-bold", selected ? "text-white" : "text-ink-700")}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text className="mt-2 text-xs font-semibold text-ink-700/70">
+                Sorted by due date · earliest first
+              </Text>
+            </View>
           </View>
         }
-        ListFooterComponent={
-          completedTasks.length ? (
-            <View className="mx-4 mt-5 overflow-hidden rounded-2xl border border-cork-700/20 bg-paper-50/80">
-              <Pressable
-                accessibilityLabel={`${completedOpen ? "Collapse" : "Expand"} ${completedTasks.length} completed tasks`}
-                accessibilityRole="button"
-                className="min-h-14 flex-row items-center px-4 active:bg-stone-200/70"
-                onPress={() => setCompletedOpen((current) => !current)}
-              >
-                <Ionicons color="#57534E" name="file-tray-full-outline" size={22} />
-                <Text className="ml-3 flex-1 text-base font-bold text-ink-700">
-                  Completed stack · {completedTasks.length}
-                </Text>
-                <Ionicons color="#57534E" name={completedOpen ? "chevron-up" : "chevron-down"} size={20} />
-              </Pressable>
-              {completedOpen ? (
-                <View className="gap-3 px-3 pb-3">
-                  {completedTasks.map((task) => (
-                    <StickyTaskCard
-                      key={task.id}
-                      busy={busyTaskIds.has(task.id)}
-                      completed
-                      task={task}
-                      onComplete={() => toggleTask(task)}
-                      onEdit={() => openEditor(task.id)}
-                      onOpenMenu={() => openTaskMenu(task)}
-                    />
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          ) : null
+        ListEmptyComponent={
+          <View className="px-5 pt-12">
+            {tasks.length === 0 ? (
+              <EmptyState
+                actionLabel="Create a note"
+                icon="create-outline"
+                message="Tear off a fresh sticky note and it will land here."
+                title="Your board is clear"
+                onAction={() => router.push(routes.create)}
+              />
+            ) : (
+              <EmptyState
+                actionLabel="Clear filters"
+                icon="options-outline"
+                message="No notes match the selected status and priority."
+                title="No matching notes"
+                onAction={() => {
+                  setStatus("incomplete");
+                  setPriority("all");
+                }}
+              />
+            )}
+          </View>
         }
         renderItem={({ item }) => {
-          const appearance = getStickyAppearance(item.id);
           const arriving = recentArrivalIds.has(item.id) || remoteArrivalIds.has(item.id);
           return (
             <Animated.View
-              className="flex-1"
+              className="mb-4 px-4"
               layout={LinearTransition.springify().damping(17).reduceMotion(ReduceMotion.System)}
-              style={{ marginTop: appearance.stagger, maxWidth: "50%" }}
             >
               <StickyTaskCard
-                arriving={arriving}
+                arriving={arriving && !item.completed}
                 busy={busyTaskIds.has(item.id)}
+                completed={item.completed}
                 task={item}
                 onArrivalRendered={() => markArrivalRendered(item.id)}
-                onComplete={() => completeTask(item)}
+                onComplete={() => (item.completed ? toggleTask(item) : completeTask(item))}
+                onDelete={() => setActiveSheet({ type: "delete", task: item })}
                 onEdit={() => openEditor(item.id)}
                 onOpenMenu={() => openTaskMenu(item)}
               />
