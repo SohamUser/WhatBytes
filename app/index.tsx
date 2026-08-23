@@ -8,5 +8,5 @@ export default function Index() {
   const { user, isAuthLoading } = useAuth();
 
   if (isAuthLoading) return <LoadingState label="Restoring your session…" />;
-  return <Redirect href={user ? routes.tasks : routes.login} />;
+  return <Redirect href={user ? routes.create : routes.login} />;
 }

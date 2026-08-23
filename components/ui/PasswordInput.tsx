@@ -17,11 +17,11 @@ export function PasswordInput(props: PasswordInputProps) {
         <Pressable
           accessibilityLabel={isVisible ? "Hide password" : "Show password"}
           accessibilityRole="button"
-          className="h-12 w-12 items-center justify-center rounded-xl active:bg-slate-100"
+          className="h-12 w-12 items-center justify-center rounded-xl active:bg-paper-200"
           onPress={() => setIsVisible((current) => !current)}
         >
           <Ionicons
-            className="text-slate-500"
+            color="#78716C"
             name={isVisible ? "eye-off-outline" : "eye-outline"}
             size={21}
           />

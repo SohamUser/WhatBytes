@@ -1,11 +1,11 @@
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   onSnapshot,
   query,
   serverTimestamp,
+  setDoc,
   Timestamp,
   updateDoc,
   where,
@@ -53,8 +53,13 @@ export function subscribeToTasks(
   );
 }
 
-export async function createTask(userId: string, input: TaskInput) {
-  await addDoc(tasksCollection, {
+export function createTaskDocumentId() {
+  return doc(tasksCollection).id;
+}
+
+export async function createTask(userId: string, input: TaskInput, taskId?: string) {
+  const taskDocument = taskId ? doc(tasksCollection, taskId) : doc(tasksCollection);
+  await setDoc(taskDocument, {
     ...input,
     title: input.title.trim(),
     description: input.description.trim(),
@@ -63,6 +68,7 @@ export async function createTask(userId: string, input: TaskInput) {
     userId,
     createdAt: serverTimestamp(),
   });
+  return taskDocument.id;
 }
 
 export async function updateTask(taskId: string, input: TaskInput) {

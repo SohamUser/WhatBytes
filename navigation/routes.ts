@@ -1,6 +1,7 @@
 export const routes = {
   login: "/(auth)/login",
   register: "/(auth)/register",
-  tasks: "/(app)",
+  create: "/(app)/(tabs)/create",
+  tasks: "/(app)/(tabs)/tasks",
   taskForm: "/(app)/task-form",
 } as const;

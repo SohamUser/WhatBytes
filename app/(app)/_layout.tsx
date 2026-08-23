@@ -14,6 +14,7 @@ export default function ProtectedLayout() {
   return (
     <TaskProvider>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="index" />
         <Stack.Screen name="task-form" options={{ presentation: "modal" }} />
       </Stack>

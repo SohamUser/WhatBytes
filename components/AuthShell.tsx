@@ -4,6 +4,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-na
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
+import { StickyNote } from "@/components/StickyNote";
+
 interface AuthShellProps extends PropsWithChildren {
   eyebrow: string;
   title: string;
@@ -12,7 +14,7 @@ interface AuthShellProps extends PropsWithChildren {
 
 export function AuthShell({ eyebrow, title, subtitle, children }: AuthShellProps) {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-paper-100">
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -22,32 +24,32 @@ export function AuthShell({ eyebrow, title, subtitle, children }: AuthShellProps
           contentContainerClassName="flex-grow justify-center px-4 py-8"
           keyboardShouldPersistTaps="handled"
         >
-          <View className="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-brand-100" />
-          <View className="absolute -left-32 top-10 h-52 w-52 rounded-full bg-brand-50" />
+          <View className="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-cork-300/35" />
+          <View className="absolute -left-32 top-10 h-52 w-52 rounded-full bg-[#FFEB7A]/35" />
           <View className="mx-auto w-full max-w-md">
             <View className="mb-8 items-center">
               <View className="relative mb-6">
-                <View className="absolute -left-5 top-2 h-2 w-2 rounded-full bg-warning-500" />
-                <View className="absolute -right-5 top-0 h-2 w-2 rounded-full bg-brand-200" />
-                <View className="absolute -right-7 bottom-2 h-1.5 w-1.5 rounded-full bg-slate-700" />
-                <View className="h-20 w-20 items-center justify-center rounded-3xl bg-brand-600 shadow-lg">
-                  <Ionicons className="text-white" name="checkmark" size={46} />
+                <View className="absolute -left-5 top-2 h-2 w-2 rounded-full bg-accent-500" />
+                <View className="absolute -right-5 top-0 h-2 w-2 rounded-full bg-cork-500" />
+                <View className="absolute -right-7 bottom-2 h-1.5 w-1.5 rounded-full bg-ink-700" />
+                <View className="h-20 w-20 rotate-[-3deg] items-center justify-center rounded-sm bg-[#FFEB7A] shadow-lg">
+                  <Ionicons color="#57534E" name="checkmark" size={46} />
                 </View>
               </View>
-              <Text className="text-sm font-bold tracking-wide text-brand-700">
+              <Text className="text-sm font-bold uppercase tracking-[2px] text-accent-600">
                 {eyebrow}
               </Text>
-              <Text className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-950">
+              <Text className="mt-3 text-center text-4xl text-ink-900" style={{ fontFamily: "Kalam_700Bold" }}>
                 {title}
               </Text>
-              <Text className="mt-2 max-w-sm text-center text-sm leading-5 text-slate-500">
+              <Text className="mt-2 max-w-sm text-center text-base leading-6 text-ink-500" style={{ fontFamily: "Kalam_400Regular" }}>
                 {subtitle}
               </Text>
             </View>
 
-            <View className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
-              {children}
-            </View>
+            <StickyNote color="#FFF4B8" rotation={0.45}>
+              <View className="p-5 sm:p-6">{children}</View>
+            </StickyNote>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

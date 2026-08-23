@@ -17,7 +17,10 @@ interface TaskContextValue {
   error: string | null;
   busyTaskIds: ReadonlySet<string>;
   retry: () => void;
-  createTask: (input: TaskInput) => Promise<void>;
+  createTask: (
+    input: TaskInput,
+    options?: { id?: string; silent?: boolean },
+  ) => Promise<string>;
   updateTask: (taskId: string, input: TaskInput) => Promise<void>;
   toggleTask: (task: Task) => Promise<void>;
   removeTask: (taskId: string) => Promise<void>;
@@ -60,11 +63,12 @@ export function TaskProvider({ children }: PropsWithChildren) {
   const retry = useCallback(() => setRetryToken((value) => value + 1), []);
 
   const createTask = useCallback(
-    async (input: TaskInput) => {
+    async (input: TaskInput, options?: { id?: string; silent?: boolean }) => {
       if (!user) throw new Error("You must be signed in to create a task.");
       try {
-        await createTaskDocument(user.uid, input);
-        showToast("Task created.", "success");
+        const taskId = await createTaskDocument(user.uid, input, options?.id);
+        if (!options?.silent) showToast("Task created.", "success");
+        return taskId;
       } catch (mutationError) {
         showToast("Couldn't create the task. Please try again.", "error");
         throw mutationError;
@@ -105,6 +109,7 @@ export function TaskProvider({ children }: PropsWithChildren) {
         await withBusyTask(task.id, () => setTaskCompleted(task.id, !task.completed));
       } catch {
         showToast("Couldn't update the task. Please try again.", "error");
+        throw new Error("Task completion update failed.");
       }
     },
     [showToast, withBusyTask],

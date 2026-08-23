@@ -23,21 +23,21 @@ export function DatePickerField({ label, value, onChange }: DatePickerFieldProps
 
   return (
     <View className="gap-2">
-      <Text className="text-sm font-semibold text-slate-700">
+      <Text className="text-xs font-bold uppercase tracking-wide text-ink-700">
         {label}
       </Text>
       <Pressable
         accessibilityLabel={`${label}, ${formatDueDate(value)}`}
         accessibilityRole="button"
         onPress={() => setIsOpen(true)}
-        className="min-h-12 flex-row items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 active:border-brand-600"
+        className="min-h-12 flex-row items-center justify-between rounded-xl border border-cork-500/35 bg-paper-100 px-4 py-3 active:border-accent-500"
       >
-        <Text className="text-base text-slate-900">{formatDueDate(value)}</Text>
-        <Ionicons className="text-brand-600" name="calendar-outline" size={21} />
+        <Text className="text-base text-ink-900">{formatDueDate(value)}</Text>
+        <Ionicons color="#C65D3B" name="calendar-outline" size={21} />
       </Pressable>
 
       {isOpen ? (
-        <View className="rounded-xl bg-slate-50 p-2">
+        <View className="rounded-xl border border-cork-500/20 bg-paper-100 p-2">
           <DateTimePicker
             display={Platform.OS === "ios" ? "inline" : "default"}
             mode="date"

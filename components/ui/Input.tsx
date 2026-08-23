@@ -12,16 +12,16 @@ interface InputProps extends TextInputProps {
 export function Input({ label, error, rightElement, className, ...props }: InputProps) {
   return (
     <View className="gap-2">
-      <Text className="text-sm font-semibold text-slate-700">
+      <Text className="text-xs font-bold uppercase tracking-wide text-ink-700">
         {label}
       </Text>
       <View className="relative">
         <TextInput
           accessibilityLabel={label}
           className={cn(
-            "min-h-12 rounded-2xl border bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400",
+            "min-h-12 rounded-xl border bg-paper-50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-500",
             Boolean(rightElement) && "pr-12",
-            error ? "border-danger-500" : "border-slate-200 focus:border-brand-600 focus:bg-white",
+            error ? "border-danger-500" : "border-cork-500/35 focus:border-accent-500 focus:bg-white",
             className,
           )}
           {...props}

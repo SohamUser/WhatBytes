@@ -13,17 +13,17 @@ interface ButtonProps extends PressableProps {
 }
 
 const containerVariants: Record<ButtonVariant, string> = {
-  primary: "bg-brand-600 active:bg-brand-700",
-  secondary: "border border-brand-200 bg-brand-50 active:bg-brand-100",
-  danger: "bg-danger-600 active:bg-danger-700",
-  ghost: "bg-transparent active:bg-slate-100",
+  primary: "border border-accent-700/20 bg-accent-500 active:bg-accent-600",
+  secondary: "border border-cork-500/35 bg-paper-50 active:bg-paper-200",
+  danger: "border border-danger-700/20 bg-danger-600 active:bg-danger-700",
+  ghost: "bg-transparent active:bg-paper-200",
 };
 
 const labelVariants: Record<ButtonVariant, string> = {
   primary: "text-white",
-  secondary: "text-brand-700",
+  secondary: "text-ink-700",
   danger: "text-white",
-  ghost: "text-slate-700",
+  ghost: "text-ink-700",
 };
 
 export function Button({
@@ -57,7 +57,10 @@ export function Button({
       ) : (
         <View className="flex-row items-center gap-2">
           {leftIcon}
-          <Text className={cn("text-base font-semibold", labelVariants[variant])}>
+          <Text
+            className={cn("text-[17px]", labelVariants[variant])}
+            style={{ fontFamily: "Kalam_700Bold" }}
+          >
             {label}
           </Text>
         </View>

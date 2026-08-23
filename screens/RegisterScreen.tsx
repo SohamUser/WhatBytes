@@ -44,7 +44,7 @@ export default function RegisterScreen() {
 
   return (
     <AuthShell
-      eyebrow="GigFlow"
+      eyebrow="Task-It-Up"
       title="Create account"
       subtitle="Create your workspace for tasks, deadlines, and priorities."
     >
@@ -53,7 +53,7 @@ export default function RegisterScreen() {
           <InlineBanner message="Firebase isn't configured yet. Add the EXPO_PUBLIC_FIREBASE_* values to .env.local." />
         ) : null}
         {errors.form ? <InlineBanner message={errors.form} /> : null}
-        <PasswordInput
+        <Input
           autoCapitalize="none"
           autoComplete="email"
           error={errors.email}
@@ -66,7 +66,7 @@ export default function RegisterScreen() {
             setErrors((current) => ({ ...current, email: undefined, form: undefined }));
           }}
         />
-        <Input
+        <PasswordInput
           autoCapitalize="none"
           autoComplete="new-password"
           error={errors.password}
@@ -100,7 +100,7 @@ export default function RegisterScreen() {
           onPress={handleSubmit}
         />
         <View className="flex-row items-center justify-center">
-          <Text className="text-sm text-slate-500">Already have an account?</Text>
+          <Text className="text-sm text-ink-500">Already have an account?</Text>
           <Button
             className="ml-1 min-h-12 px-2 py-1"
             label="Sign in"
